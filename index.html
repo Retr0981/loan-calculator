@@ -1,83 +1,196 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <title>Loan Calculator</title>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Calculate loan payments with interest instantly">
+  <title>Professional Loan Calculator</title>
+  
+  <!-- Bootstrap 5.3 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
+  
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      background: var(--primary-gradient);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+    
+    .card {
+      border: none;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      backdrop-filter: blur(10px);
+    }
+    
+    .form-control:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    
+    .btn-calculate {
+      background: var(--primary-gradient);
+      border: none;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      transition: transform 0.2s;
+    }
+    
+    .btn-calculate:hover {
+      transform: translateY(-2px);
+    }
+    
+    .input-group-text {
+      background: #f8f9fa;
+      border-right: none;
+    }
+    
+    .form-control {
+      border-left: none;
+    }
+    
+    .form-control:focus + .input-group-text {
+      border-color: #667eea;
+    }
+    
+    #loadingSpinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .result-card {
+      background: linear-gradient(to right, #f8f9fa, #e9ecef);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .text-muted { font-size: 0.875rem; }
+  </style>
+</head>
 
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
-    <style>
-      #loading, #results {
-        display:none;
-      }
-    </style>
-  </head>
-  <body class="bg-dark">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-6 mx-auto">
-          <div class="card card-body text-center mt-5">
-            <h1 class="heading display-5 pb-3">Loan Calculator</h1>
-            <form id="loan-form">
-              <div class="form-group">
+<body>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-6 mx-auto">
+        <div class="card p-4">
+          <div class="card-body">
+            <h1 class="text-center mb-4 fw-bold">
+              💰 Loan Calculator
+            </h1>
+            
+            <form id="loanForm" novalidate>
+              <!-- Loan Amount -->
+              <div class="mb-3">
+                <label for="amount" class="form-label fw-semibold">Loan Amount</label>
                 <div class="input-group">
-                  <span class="input-group-addon">$</span>
-                  <input type="number" class="form-control" id="amount" placeholder="Loan Amount">
+                  <span class="input-group-text">$</span>
+                  <input type="number" 
+                         class="form-control form-control-lg" 
+                         id="amount" 
+                         placeholder="10000" 
+                         min="100" 
+                         max="99999999" 
+                         step="0.01" 
+                         required>
                 </div>
+                <div class="invalid-feedback">Please enter a valid amount (min $100)</div>
               </div>
-              <div class="form-group">
+
+              <!-- Interest Rate -->
+              <div class="mb-3">
+                <label for="interest" class="form-label fw-semibold">Annual Interest Rate</label>
                 <div class="input-group">
-                  <span class="input-group-addon">%</span>
-                  <input type="number" class="form-control" id="interest" placeholder="Interest">
+                  <span class="input-group-text">%</span>
+                  <input type="number" 
+                         class="form-control form-control-lg" 
+                         id="interest" 
+                         placeholder="5.5" 
+                         min="0.1" 
+                         max="99" 
+                         step="0.01" 
+                         required>
                 </div>
+                <div class="invalid-feedback">Please enter a valid interest rate</div>
               </div>
-              <div class="form-group">
-                <input type="number" class="form-control" id="years" placeholder="Years To Repay">
+
+              <!-- Loan Term -->
+              <div class="mb-4">
+                <label for="years" class="form-label fw-semibold">Loan Term</label>
+                <input type="number" 
+                       class="form-control form-control-lg" 
+                       id="years" 
+                       placeholder="30" 
+                       min="1" 
+                       max="50" 
+                       required>
+                <div class="form-text text-muted">Years to repay the loan</div>
+                <div class="invalid-feedback">Please enter a valid term (1-50 years)</div>
               </div>
-              <div class="forn-group">
-                <input type="submit" value="Calculate" class="btn btn-dark btn-block">
+
+              <!-- Submit Button -->
+              <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-calculate btn-lg">
+                  Calculate
+                </button>
               </div>
             </form>
-            <!-- LOADER -->
-            <div id="loading">
-              <img src="img/loading.gif" alt="">
+
+            <!-- Loading Spinner -->
+            <div id="loading" class="text-center mt-4" aria-live="polite">
+              <div id="loadingSpinner"></div>
+              <p class="text-muted">Calculating your loan...</p>
             </div>
-            <!-- RESULTS -->
-            <div id="results" class="pt-4">
-              <h5>Results</h5>
-              <div class="form-group">
-                <div class="input-group">
-                  <span class="input-group-addon">Monthly Payment</span>
-                  <input type="number" class="form-control" id="monthly-payment" disabled>
-                </div>
+
+            <!-- Results -->
+            <div id="results" class="mt-4">
+              <h5 class="mb-3 text-center fw-bold">📊 Results</h5>
+              
+              <div class="result-card">
+                <label class="text-muted small mb-1">Monthly Payment</label>
+                <input type="text" class="form-control-plaintext fw-bold fs-4" id="monthly-payment" readonly>
               </div>
 
-              <div class="form-group">
-                <div class="input-group">
-                  <span class="input-group-addon">Total Payment</span>
-                  <input type="number" class="form-control" id="total-payment" disabled>
-                </div>
+              <div class="result-card">
+                <label class="text-muted small mb-1">Total Payment</label>
+                <input type="text" class="form-control-plaintext fw-bold fs-4 text-primary" id="total-payment" readonly>
               </div>
 
-              <div class="form-group">
-                <div class="input-group">
-                  <span class="input-group-addon">Total Interest</span>
-                  <input type="number" class="form-control" id="total-interest" disabled>
-                </div>
+              <div class="result-card">
+                <label class="text-muted small mb-1">Total Interest</label>
+                <input type="text" class="form-control-plaintext fw-bold fs-4 text-danger" id="total-interest" readonly>
               </div>
+
+              <button type="button" class="btn btn-outline-secondary btn-sm mt-3" id="resetBtn">
+                🔄 Reset
+              </button>
             </div>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
-    <script src="app.js"></script>
-  </body>
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <script src="app.js" type="module"></script>
+</body>
 </html>
